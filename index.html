@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>輪盤抽獎程式</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { text-align: center; font-family: sans-serif; }
+    canvas { margin-top: 30px; transition: transform 4s cubic-bezier(0.33, 1, 0.68, 1); }
+    #spinBtn { padding: 10px 20px; font-size: 20px; margin-top: 20px; }
+    #prizeImg { margin-top: 20px; max-width: 200px; display: none; }
+  </style>
+</head>
+<body>
+  <h1>歡迎來到 GitHub 頁面輪盤抽獎</h1>
+  <canvas id="wheel" width="500" height="500"></canvas><br>
+  <button id="spinBtn">抽獎！</button>
+  <p id="result"></p>
+  <img id="prizeImg" src="" alt="中獎獎品圖片">
+  <audio id="spinSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+  <audio id="winSound" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_706f1c50e8.mp3?filename=success-fanfare-trumpets-6185.mp3"></audio>
+
+  <script>
+    const prizes = [
+      { name: '貳獎：打地鼠遊戲機', count: 30, img: 'https://github.com/home24655816/Garden-Party-Lucky-Draw/blob/main/%E6%89%93%E5%9C%B0%E9%BC%A0.jpg' },
+      { name: '舒壓按摩鍵盤', count: 30, img: 'https://github.com/home24655816/Garden-Party-Lucky-Draw/blob/main/%E9%9B%BB%E8%85%A6%E7%99%BC%E5%85%89%E6%8C%89%E9%8D%B5.jpg' },
+      { name: '頭獎：復古可錄音播放器', count: 10, img: 'https://github.com/home24655816/Garden-Party-Lucky-Draw/blob/main/%E9%8C%84%E9%9F%B3%E6%A9%9F.jpg' },
+      { name: '盲袋', count: 30, img: 'https://github.com/home24655816/Garden-Party-Lucky-Draw/blob/main/%E7%9B%B2%E8%A2%8B.jpg' },
+      { name: '特別獎：大聲公擴音器', count: 12, img: 'https://github.com/home24655816/Garden-Party-Lucky-Draw/blob/main/%E5%A4%A7%E8%81%B2%E5%85%AC.jpg' },
+      { name: '迷你扭蛋', count: 50, img: 'https://github.com/home24655816/Garden-Party-Lucky-Draw/blob/main/%E6%89%AD%E8%9B%8B.jpg' },
+      { name: '三獎：發條小雞', count: 20, img: 'https://github.com/home24655816/Garden-Party-Lucky-Draw/blob/main/%E7%99%BC%E6%A2%9D%E5%B0%8F%E9%9B%9E.jpg' },
+    ];
+
+    const total = prizes.reduce((sum, prize) => sum + prize.count, 0);
+    const segments = prizes.map(prize => ({
+      label: prize.name,
+      probability: prize.count / total,
+      img: prize.img
+    }));
+
+    const labels = segments.map(s => s.label);
+    const data = segments.map(s => s.probability);
+
+    const ctx = document.getElementById("wheel").getContext("2d");
+    const wheel = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: labels.map((_, i) => `hsl(${i * 50}, 70%, 70%)`)
+        }]
+      },
+      options: {
+        responsive: false,
+        plugins: {
+          legend: { position: 'bottom' }
+        },
+        animation: false
+      }
+    });
+
+    const canvas = document.getElementById("wheel");
+    const spinBtn = document.getElementById("spinBtn");
+    const result = document.getElementById("result");
+    const spinSound = document.getElementById("spinSound");
+    const winSound = document.getElementById("winSound");
+    const prizeImg = document.getElementById("prizeImg");
+
+    spinBtn.addEventListener("click", () => {
+      spinSound.play();
+      prizeImg.style.display = 'none';
+      let rotation = 360 * 5 + Math.floor(Math.random() * 360);
+      canvas.style.transform = `rotate(${rotation}deg)`;
+
+      setTimeout(() => {
+        let r = Math.random();
+        let acc = 0;
+        let selected;
+        for (let s of segments) {
+          acc += s.probability;
+          if (r < acc) {
+            selected = s;
+            break;
+          }
+        }
+        winSound.play();
+        result.textContent = `恭喜中獎：${selected.label}！`;
+        prizeImg.src = selected.img;
+        prizeImg.style.display = 'block';
+      }, 4000);
+    });
+  </script>
+</body>
+</html>
